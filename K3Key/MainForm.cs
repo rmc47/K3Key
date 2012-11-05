@@ -28,15 +28,22 @@ namespace K3Key
             m_VirtualWinKeyChoice.Items.AddRange(serialPortNames);
         }
 
-        private void m_Connect_Click(object sender, EventArgs e)
+        private void MainForm_Load(object sender, EventArgs e)
         {
-            m_WinKey = new FakeWinKey("COM12A", m_Bridge);
-            //m_WinKey.DataReceived += new EventHandler<DataReceivedEventArgs>(WinKeyDataReceived);
+            // Restore the previously selected values
+            string realK3Serial = Settings.Get("RealK3Serial", null);
+            if (realK3Serial != null)
+                m_K3SerialChoice.SelectedItem = realK3Serial;
+            string virtualK3Serial = Settings.Get("VirtualK3Serial", null);
+            if (virtualK3Serial != null)
+                m_VirtualK3Choice.SelectedItem = virtualK3Serial;
+            string virtualWinKeySerial = Settings.Get("VirtualWinKeySerial", null);
+            if (virtualWinKeySerial != null)
+                m_VirtualWinKeyChoice.SelectedItem = virtualWinKeySerial;
         }
 
         private void AppendText(RichTextBox box, string text)
         {
-            return;
             Invoke(new MethodInvoker(() =>
             {
                 box.AppendText(text + "\r\n");
@@ -50,9 +57,14 @@ namespace K3Key
             {
                 m_Bridge.Dispose();
                 m_Bridge = null;
+                if (m_WinKey != null)
+                    m_WinKey.Bridge = null;
             }
             if (m_K3SerialChoice.SelectedIndex >= 0 && m_VirtualK3Choice.SelectedIndex >= 0)
             {
+                Settings.Set("RealK3Serial", m_K3SerialChoice.Text);
+                Settings.Set("VirtualK3Serial", m_VirtualK3Choice.Text);
+
                 bool bothOK = true;
                 m_VirtualK3Status.Text = m_K3SerialStatus.Text = string.Empty;
                 if (!TestOpenSerialPort(m_K3SerialChoice.Text))
@@ -66,19 +78,63 @@ namespace K3Key
                     bothOK = false;
                 }
 
-                try
+                if (bothOK)
                 {
-                    m_Bridge = new SerialBridge(m_K3SerialChoice.Text, m_VirtualK3Choice.Text, 4800);
-                    if (m_WinKey != null)
-                        m_WinKey.Bridge = m_Bridge;
+                    try
+                    {
+                        m_Bridge = new SerialBridge(m_K3SerialChoice.Text, m_VirtualK3Choice.Text, 4800);
+                        m_Bridge.RealRadioErrorReceived += new EventHandler(RealRadioErrorReceived);
+                        m_Bridge.FakeRadioErrorReceived += new EventHandler(FakeRadioErrorReceived);
+                        if (m_WinKey != null)
+                            m_WinKey.Bridge = m_Bridge;
 
-                    m_K3SerialStatus.Text = m_VirtualK3Status.Text = "Connected";
-                }
-                catch (Exception ex)
-                {
-                    m_K3SerialStatus.Text = m_VirtualK3Status.Text = "Error creating bridge";
+                        m_K3SerialStatus.Text = m_VirtualK3Status.Text = "Connected";
+                    }
+                    catch
+                    {
+                        m_K3SerialStatus.Text = m_VirtualK3Status.Text = "Error creating bridge";
+                    }
                 }
             }
+        }
+
+        private void WinKeyPortChanged(object sender, EventArgs e)
+        {
+            if (m_WinKey != null)
+            {
+                m_WinKey.Dispose();
+                m_WinKey = null;
+            }
+            if (m_VirtualWinKeyChoice.SelectedIndex >= 0)
+            {
+                Settings.Set("VirtualWinKeySerial", m_VirtualWinKeyChoice.Text);
+                m_VirtualWinKeyStatus.Text = string.Empty;
+                if (!TestOpenSerialPort(m_VirtualWinKeyChoice.Text))
+                {
+                    m_VirtualWinKeyStatus.Text = "Error opening port";
+                }
+                else
+                {
+                    m_WinKey = new FakeWinKey(m_VirtualWinKeyChoice.Text, m_Bridge);
+                    m_VirtualWinKeyStatus.Text = "Connected";
+                }
+            }
+        }
+
+        void FakeRadioErrorReceived(object sender, EventArgs e)
+        {
+            Invoke(new MethodInvoker(() =>
+            {
+                m_K3SerialStatus.Text = "Port error";
+            }));
+        }
+
+        void RealRadioErrorReceived(object sender, EventArgs e)
+        {
+            Invoke(new MethodInvoker(() =>
+            {
+                m_VirtualK3Status.Text = "Port error";
+            }));
         }
 
         private bool TestOpenSerialPort(string port)
@@ -97,6 +153,7 @@ namespace K3Key
                 return false;
             }
         }
+
 
     }
 }

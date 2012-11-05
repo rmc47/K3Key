@@ -38,10 +38,10 @@
             this.label4 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.m_K3SerialChoice = new System.Windows.Forms.ComboBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.m_K3SerialStatus = new System.Windows.Forms.Label();
-            this.m_VirtualK3Status = new System.Windows.Forms.Label();
             this.m_VirtualWinKeyStatus = new System.Windows.Forms.Label();
+            this.m_VirtualK3Status = new System.Windows.Forms.Label();
+            this.m_K3SerialStatus = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
@@ -111,6 +111,7 @@
             this.m_VirtualWinKeyChoice.Name = "m_VirtualWinKeyChoice";
             this.m_VirtualWinKeyChoice.Size = new System.Drawing.Size(172, 21);
             this.m_VirtualWinKeyChoice.TabIndex = 7;
+            this.m_VirtualWinKeyChoice.SelectedIndexChanged += new System.EventHandler(this.WinKeyPortChanged);
             // 
             // label6
             // 
@@ -186,28 +187,17 @@
             this.m_K3SerialChoice.TabIndex = 1;
             this.m_K3SerialChoice.SelectedIndexChanged += new System.EventHandler(this.BridgePortChanged);
             // 
-            // label1
+            // m_VirtualWinKeyStatus
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(3, 29);
-            this.label1.Name = "label1";
-            this.tableLayoutPanel1.SetRowSpan(this.label1, 2);
-            this.label1.Size = new System.Drawing.Size(110, 13);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "K3 Serial port:";
-            // 
-            // m_K3SerialStatus
-            // 
-            this.m_K3SerialStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.m_VirtualWinKeyStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_K3SerialStatus.AutoSize = true;
-            this.m_K3SerialStatus.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.m_K3SerialStatus.Location = new System.Drawing.Point(119, 36);
-            this.m_K3SerialStatus.Name = "m_K3SerialStatus";
-            this.m_K3SerialStatus.Size = new System.Drawing.Size(172, 13);
-            this.m_K3SerialStatus.TabIndex = 11;
-            this.m_K3SerialStatus.Text = "Not connected";
+            this.m_VirtualWinKeyStatus.AutoSize = true;
+            this.m_VirtualWinKeyStatus.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.m_VirtualWinKeyStatus.Location = new System.Drawing.Point(119, 180);
+            this.m_VirtualWinKeyStatus.Name = "m_VirtualWinKeyStatus";
+            this.m_VirtualWinKeyStatus.Size = new System.Drawing.Size(172, 13);
+            this.m_VirtualWinKeyStatus.TabIndex = 13;
+            this.m_VirtualWinKeyStatus.Text = "Not connected";
             // 
             // m_VirtualK3Status
             // 
@@ -221,17 +211,28 @@
             this.m_VirtualK3Status.TabIndex = 12;
             this.m_VirtualK3Status.Text = "Not connected";
             // 
-            // m_VirtualWinKeyStatus
+            // m_K3SerialStatus
             // 
-            this.m_VirtualWinKeyStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.m_K3SerialStatus.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.m_VirtualWinKeyStatus.AutoSize = true;
-            this.m_VirtualWinKeyStatus.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.m_VirtualWinKeyStatus.Location = new System.Drawing.Point(119, 180);
-            this.m_VirtualWinKeyStatus.Name = "m_VirtualWinKeyStatus";
-            this.m_VirtualWinKeyStatus.Size = new System.Drawing.Size(172, 13);
-            this.m_VirtualWinKeyStatus.TabIndex = 13;
-            this.m_VirtualWinKeyStatus.Text = "Not connected";
+            this.m_K3SerialStatus.AutoSize = true;
+            this.m_K3SerialStatus.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.m_K3SerialStatus.Location = new System.Drawing.Point(119, 36);
+            this.m_K3SerialStatus.Name = "m_K3SerialStatus";
+            this.m_K3SerialStatus.Size = new System.Drawing.Size(172, 13);
+            this.m_K3SerialStatus.TabIndex = 11;
+            this.m_K3SerialStatus.Text = "Not connected";
+            // 
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(3, 29);
+            this.label1.Name = "label1";
+            this.tableLayoutPanel1.SetRowSpan(this.label1, 2);
+            this.label1.Size = new System.Drawing.Size(110, 13);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "K3 Serial port:";
             // 
             // MainForm
             // 
@@ -244,6 +245,7 @@
             this.MaximizeBox = false;
             this.Name = "MainForm";
             this.Text = "M0VFC K3Key";
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.groupBox1.ResumeLayout(false);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();

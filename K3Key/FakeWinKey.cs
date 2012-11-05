@@ -117,7 +117,8 @@ namespace K3Key
                             // Just a character!
                             Write((byte)cmd);
                             Debug.Write(((char)cmd).ToString());
-                            m_Bridge.InjectData("KY " + ((char)cmd).ToString() + ";");
+                            if (m_Bridge != null)
+                                m_Bridge.InjectData("KY " + ((char)cmd).ToString() + ";");
                             break;
                     }
                 }
@@ -191,8 +192,12 @@ namespace K3Key
         {
             if (m_Port != null)
             {
-                if (m_Port.IsOpen)
-                    m_Port.Close();
+                try
+                {
+                    if (m_Port.IsOpen)
+                        m_Port.Close();
+                }
+                catch { }
                 m_Port.Dispose();
                 m_Port = null;
             }
