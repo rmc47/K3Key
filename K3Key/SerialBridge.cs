@@ -37,6 +37,12 @@ namespace K3Key
             }
         }
 
+        public int BaudRate
+        {
+            get { return m_RealRadio.BaudRate; }
+            set { m_RealRadio.BaudRate = m_FakeRadio.BaudRate = value; }
+        }
+
         public void InjectData(string data)
         {
             if (m_FakeRadio == null)

@@ -14,6 +14,7 @@ namespace K3Key
     {
         private SerialBridge m_Bridge;
         private FakeWinKey m_WinKey;
+        private int m_CurrentCATSpeed = 4800;
 
         public MainForm()
         {
@@ -40,6 +41,9 @@ namespace K3Key
             string virtualWinKeySerial = Settings.Get("VirtualWinKeySerial", null);
             if (virtualWinKeySerial != null)
                 m_VirtualWinKeyChoice.SelectedItem = virtualWinKeySerial;
+            string catSpeed = Settings.Get("CATSpeed", null);
+            if (catSpeed != null)
+                m_CATSpeed.SelectedItem = catSpeed;
         }
 
         private void AppendText(RichTextBox box, string text)
@@ -64,6 +68,8 @@ namespace K3Key
             {
                 Settings.Set("RealK3Serial", m_K3SerialChoice.Text);
                 Settings.Set("VirtualK3Serial", m_VirtualK3Choice.Text);
+                if (!string.IsNullOrEmpty(m_CATSpeed.Text))
+                    Settings.Set("CATSpeed", m_CATSpeed.Text);
 
                 bool bothOK = true;
                 m_VirtualK3Status.Text = m_K3SerialStatus.Text = string.Empty;
@@ -82,7 +88,7 @@ namespace K3Key
                 {
                     try
                     {
-                        m_Bridge = new SerialBridge(m_K3SerialChoice.Text, m_VirtualK3Choice.Text, 4800);
+                        m_Bridge = new SerialBridge(m_K3SerialChoice.Text, m_VirtualK3Choice.Text, m_CurrentCATSpeed);
                         m_Bridge.RealRadioErrorReceived += new EventHandler(RealRadioErrorReceived);
                         m_Bridge.FakeRadioErrorReceived += new EventHandler(FakeRadioErrorReceived);
                         if (m_WinKey != null)
@@ -90,12 +96,27 @@ namespace K3Key
 
                         m_K3SerialStatus.Text = m_VirtualK3Status.Text = "Connected";
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         m_K3SerialStatus.Text = m_VirtualK3Status.Text = "Error creating bridge";
                     }
                 }
             }
+        }
+
+        private void CATSpeedChanged(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(m_CATSpeed.Text))
+                return;
+
+            Settings.Set("CATSpeed", m_CATSpeed.Text);
+            int catSpeed;
+            if (!int.TryParse(m_CATSpeed.Text, out catSpeed) || catSpeed < 1000 || catSpeed > 100000)
+                catSpeed = 4800; // Sensible default
+
+            m_CurrentCATSpeed = catSpeed;
+            if (m_Bridge != null)
+                m_Bridge.BaudRate = catSpeed;
         }
 
         private void WinKeyPortChanged(object sender, EventArgs e)
