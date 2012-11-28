@@ -11,7 +11,9 @@ namespace K3Key
         private SerialPort m_RealRadio;
         private SerialPort m_FakeRadio;
 
-        public EventHandler<DataReceivedEventArgs> DataReceived;
+        public event EventHandler<DataReceivedEventArgs> DataReceived;
+        public event EventHandler RealRadioErrorReceived;
+        public event EventHandler FakeRadioErrorReceived;
 
         public SerialBridge(string realRadioPort, string fakeRadioPort, int baud)
         {
@@ -35,14 +37,27 @@ namespace K3Key
             }
         }
 
+        public int BaudRate
+        {
+            get { return m_RealRadio.BaudRate; }
+            set { m_RealRadio.BaudRate = m_FakeRadio.BaudRate = value; }
+        }
+
         public void InjectData(string data)
         {
             if (m_FakeRadio == null)
                 throw new ObjectDisposedException("Cannot inject data after SerialBridge Disposed");
 
-            lock (m_FakeRadio)
+            try
             {
-                m_RealRadio.Write(data);
+                lock (m_FakeRadio)
+                {
+                    m_RealRadio.Write(data);
+                }
+            }
+            catch
+            {
+                OnRealRadioErrorReceived();
             }
         }
 
@@ -51,15 +66,29 @@ namespace K3Key
             if (m_FakeRadio == null || m_RealRadio == null) // Tidying up during dispose
                 return;
 
-            lock (m_FakeRadio)
+            try
             {
-                while (m_FakeRadio.BytesToRead > 0)
+                lock (m_FakeRadio)
                 {
-                    byte[] buff = new byte[m_FakeRadio.BytesToRead];
-                    int read = m_FakeRadio.Read(buff, 0, buff.Length);
-                    m_RealRadio.Write(buff, 0, read);
-                    OnDataReceived("WT_RAD", Encoding.ASCII.GetString(buff, 0, read));
+                    while (m_FakeRadio.BytesToRead > 0)
+                    {
+                        byte[] buff = new byte[m_FakeRadio.BytesToRead];
+                        int read = m_FakeRadio.Read(buff, 0, buff.Length);
+                        try
+                        {
+                            m_RealRadio.Write(buff, 0, read);
+                        }
+                        catch
+                        {
+                            OnRealRadioErrorReceived();
+                        }
+                        OnDataReceived("WT_RAD", Encoding.ASCII.GetString(buff, 0, read));
+                    }
                 }
+            }
+            catch
+            {
+                OnFakeRadioErrorReceived();
             }
         }
 
@@ -68,15 +97,29 @@ namespace K3Key
             if (m_FakeRadio == null || m_RealRadio == null) // Tidying up during dispose
                 return;
 
-            lock (m_RealRadio)
+            try
             {
-                while (m_RealRadio.BytesToRead > 0)
+                lock (m_RealRadio)
                 {
-                    byte[] buff = new byte[m_RealRadio.BytesToRead];
-                    int read = m_RealRadio.Read(buff, 0, buff.Length);
-                    m_FakeRadio.Write(buff, 0, read);
-                    OnDataReceived("RADIO", Encoding.ASCII.GetString(buff, 0, read));
+                    while (m_RealRadio.BytesToRead > 0)
+                    {
+                        byte[] buff = new byte[m_RealRadio.BytesToRead];
+                        int read = m_RealRadio.Read(buff, 0, buff.Length);
+                        try
+                        {
+                            m_FakeRadio.Write(buff, 0, read);
+                        }
+                        catch
+                        {
+                            OnFakeRadioErrorReceived();
+                        }
+                        OnDataReceived("RADIO", Encoding.ASCII.GetString(buff, 0, read));
+                    }
                 }
+            }
+            catch
+            {
+                OnRealRadioErrorReceived();
             }
         }
 
@@ -86,19 +129,39 @@ namespace K3Key
                 DataReceived(this, new DataReceivedEventArgs(port, data));
         }
 
+        private void OnRealRadioErrorReceived()
+        {
+            if (RealRadioErrorReceived != null)
+                RealRadioErrorReceived(this, new EventArgs());
+        }
+
+        private void OnFakeRadioErrorReceived()
+        {
+            if (FakeRadioErrorReceived != null)
+                FakeRadioErrorReceived(this, new EventArgs ());
+        }
+
         public void Dispose()
         {
             if (m_RealRadio != null)
             {
-                if (m_RealRadio.IsOpen)
-                    m_RealRadio.Close();
+                try
+                {
+                    if (m_RealRadio.IsOpen)
+                        m_RealRadio.Close();
+                }
+                catch { }
                 m_RealRadio.Dispose();
                 m_RealRadio = null;
             }
             if (m_FakeRadio != null)
             {
-                if (m_FakeRadio.IsOpen) ;
-                m_FakeRadio.Close();
+                try
+                {
+                    if (m_FakeRadio.IsOpen)
+                        m_FakeRadio.Close();
+                }
+                catch { }
                 m_FakeRadio.Dispose();
                 m_FakeRadio = null;
             }
