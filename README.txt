@@ -1,0 +1,1 @@
+K3Key is a small app that simulates a WinKey interface on one COM port, and passes CW keying requests through to an Elecraft K3 or similar radio on another serial port (along with a pass-through for CAT control).
