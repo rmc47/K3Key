@@ -70,6 +70,8 @@ namespace K3Key
                             IgnoreCommand(1);
                             break;
                         case 0xA: // Clear buffer
+                            if (m_Bridge != null)
+                                m_Bridge.InjectData("RX;");
                             break;
                         case 0xB: // Key immediate
                         case 0xC: // Set HSCW
